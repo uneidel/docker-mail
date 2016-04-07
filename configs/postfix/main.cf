@@ -1,0 +1,107 @@
+smtpd_banner = octonion.de
+biff = no
+debug_peer_level = 2
+debug_peer_list = soqanet.de
+append_dot_mydomain = no
+#delay_warning_time = 4h
+readme_directory = no
+# TLS parameters
+smtpd_tls_cert_file=/etc/ssl/certs/bundle.star.octonion.de.crt
+smtpd_tls_key_file=/etc/ssl/private/star_octonion_de.key
+smtpd_use_tls=yes
+smtp_tls_note_starttls_offer=yes
+smtpd_tls_session_cache_database = btree:${data_directory}/smtpd_scache
+smtp_tls_session_cache_database = btree:${data_directory}/smtp_scache
+smtp_tls_loglevel = 1
+myhostname = mail.octonion.de
+#alias_maps = hash:/etc/aliases
+#alias_database = hash:/etc/aliases
+myorigin = /etc/mailname
+mydestination = postmaster@octonion.de, h2311631.stratoserver.net, localhost.st$
+mynetworks = 127.0.0.0/8, 85.214.137.210
+#mailbox_command = /usr/lib/dovecot/deliver
+mailbox_transport = dovecot
+mailbox_size_limit = 0
+recipient_delimiter = +
+inet_interfaces = all
+
+# virtual mail setup for Postgresql and Dovecot transport
+virtual_mailbox_base = /var/mail/vmail
+virtual_mailbox_limit = 512000000
+virtual_mailbox_domains = proxy:pgsql:/etc/postfix/pgsql_virtual_domains_maps.cf
+virtual_mailbox_maps = proxy:pgsql:/etc/postfix/pgsql_virtual_mailbox_maps.cf
+virtual_alias_maps = proxy:pgsql:/etc/postfix/pgsql_virtual_alias_maps.cf
+
+virtual_uid_maps = static:8
+virtual_gid_maps = static:12
+virtual_minimum_uid = 8
+dovecot_destination_recipient_limit = 1
+
+# also local accounts are handled via virtual users, configure aliases for thos$
+local_transport = virtual
+local_recipient_maps = $virtual_mailbox_maps
+
+
+# security and basic spam protection
+smtpd_recipient_restrictions =
+               permit_sasl_authenticated
+               permit_mynetworks
+               reject_unauth_destination
+smtpd_client_restrictions =
+               permit_sasl_authenticated
+               reject_rbl_client zen.spamhaus.org
+
+smtpd_sasl_type = dovecot
+smtpd_sasl_path = private/auth
+smtpd_sasl_auth_enable = yes
+smtpd_recipient_restrictions =permit_sasl_authenticated,permit_mynetworks,rejec$
+smtpd_tls_auth_only = yes
+disable_vrfy_command = yes
+smtpd_helo_required = yes
+smtpd_recipient_restrictions =
+     permit_mynetworks,
+     permit_sasl_authenticated,
+     reject_unauth_pipelining,
+     reject_unknown_recipient_domain,
+     reject_non_fqdn_sender,
+     reject_non_fqdn_recipient,
+     reject_unauth_destination
+smtpd_client_restrictions =
+     permit_mynetworks,
+permit_sasl_authenticated,
+     reject_unauth_pipelining,
+     reject_unknown_recipient_domain,
+     reject_non_fqdn_sender,
+     reject_non_fqdn_recipient,
+     reject_unauth_destination
+smtpd_client_restrictions =
+     permit_mynetworks,
+     reject_rbl_client relays.ordb.org,
+     reject_rbl_client ipwhois.rfc-ignorant.org,
+     permit_sasl_authenticated
+smtpd_sender_restrictions =
+     permit_mynetworks,
+     reject_rhsbl_sender dsn.rfc-ignorant.org,
+     permit_sasl_authenticated,
+     reject_sender_login_mismatch
+# Setup a spam tarpit...
+smtpd_error_sleep_time = 60
+smtpd_soft_error_limit = 60
+smtpd_hard_error_limit = 10
+default_process_limit = 3
+smtp_sasl_auth_enable = no
+smtpd_sasl_auth_enable = yes
+smtpd_sasl_security_options = noanonymous
+smtpd_sasl_local_domain = $mydomain
+unknown_local_recipient_reject_code = 450
+smtpd_recipient_restrictions =
+     permit_mynetworks,
+     permit_sasl_authenticated,
+     reject_unauth_destination,
+     check_policy_service inet:::1:10023
+inet_protocols = all
+setgid_group=postdrop
+virtual_transport = dovecot
+message_size_limit = 52428800
+content_filter=smtp-amavis:[127.0.0.1]:10024
+

@@ -1,0 +1,5 @@
+user = mailreader
+password = secXpK8b6Cxd3s9
+hosts = localhost
+dbname = postfix
+query = SELECT domain FROM domain WHERE domain='%s' and backupmx = true

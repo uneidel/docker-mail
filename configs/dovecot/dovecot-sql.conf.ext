@@ -1,0 +1,10 @@
+connect = host=VAR_SQLHOST dbname=VAR_SQLDB user=VAR_SQLUSR password=VAR_SQLPWD
+driver = pgsql
+default_pass_scheme = MD5
+user_query = \
+    SELECT '/var/mail/vmail/'||maildir AS home, '*:bytes='||quota AS quota_rule$
+    FROM mailbox WHERE username = '%u' AND active = TRUE
+password_query = \
+    SELECT '/var/mail/vmail/'||maildir AS userdb_home, \
+        username AS user, password, '*:bytes='||quota AS userdb_quota_rule \
+    FROM mailbox WHERE username = '%u' AND active = TRUE
